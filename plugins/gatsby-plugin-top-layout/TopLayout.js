@@ -1,7 +1,7 @@
 import React, { createContext, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Helmet } from 'react-helmet';
-import Theme from './theme';
+import Theme from './Theme';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 
 export const ColorSchemeContext = createContext({});
