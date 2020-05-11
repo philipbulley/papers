@@ -33,9 +33,11 @@ const NewYorkTimes = () => {
 
   useEffect(() => {
     useThumbnails ? setUrl(getUrl(day, true)) : setSync(false);
-    setImageError(false);
     clearTimeout(debounce.current);
-    debounce.current = setTimeout(() => setUrl(getUrl(day)), 300);
+    debounce.current = setTimeout(() => {
+      setImageError(false);
+      setUrl(getUrl(day));
+    }, 300);
   }, [cursor]);
 
   const handleOnLoad = useCallback(() => {
@@ -48,6 +50,11 @@ const NewYorkTimes = () => {
     }
   }, [imageLoaded, useThumbnails]);
 
+  const handleOnError = useCallback(() => {
+    setImageError(true);
+    setSync(true);
+  }, []);
+
   const toggleDialog = useCallback(() => {
     setShowDialog(!showDialog);
   }, [showDialog]);
@@ -59,20 +66,19 @@ const NewYorkTimes = () => {
       <Container>
         <Main>
           <SEO title="New York Times — Front Pages" />
-
           {!imageError && (
             <FrontPage>
               <FrontPageImage
                 src={url}
                 alt={`New York Times front page on ${dateLabel}`}
-                onError={setImageError}
+                onError={handleOnError}
                 onLoad={handleOnLoad}
                 sync={sync}
                 show={imageLoaded}
               />
             </FrontPage>
           )}
-          {imageError && (
+          {imageError && sync && (
             <FrontPage>
               <FrontPageFallback>
                 <Typography variant="h4" align="center" gutterBottom>
