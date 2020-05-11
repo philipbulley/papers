@@ -1,7 +1,7 @@
 module.exports = {
   siteMetadata: {
-    title: `Papers`,
-    description: `A small yet cool little time machine of newspaper front pages`,
+    title: `Papers Time Machine`,
+    description: `A small yet neat little time machine of newspaper front pages`,
     author: `Papers`,
   },
   plugins: [
