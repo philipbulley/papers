@@ -10,4 +10,4 @@ To run the gatsby based site
 
 ### `yarn dl`
 
-To scrape/download newspaper images
+To scrape/download newspaper images (only useful is `USE_THUMBNAILS=true`)

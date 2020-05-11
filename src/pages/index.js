@@ -1,39 +1,47 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 
 import Layout from '../components/layout';
 import SEO from '../components/seo';
 import moment from 'moment';
 import Slider from '@material-ui/core/Slider';
-import IconButton from '@material-ui/core/IconButton';
+import _IconButton from '@material-ui/core/IconButton';
 import NavigateBefore from '@material-ui/icons/NavigateBefore';
 import NavigateNext from '@material-ui/icons/NavigateNext';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 
+const useThumbnails = process.env.USE_THUMBNAILS === 'true';
 const start = moment('1851-09-18').startOf('day');
 const end = moment('2020-05-11').startOf('day');
 const firstSundayPublication = moment('1861-04-21');
 const days = end.diff(start, 'days');
 
 const NewYorkTimes = () => {
-  const [cursor, setCursor] = useState(1);
+  const [cursor, setCursor] = useState(0);
   const day = moment(start).add(cursor, 'days');
   const debounce = useRef(null);
-  const [url, setUrl] = useState(getUrl(day));
+  const [url, setUrl] = useState();
+  const [sync, setSync] = useState(true);
   const [imageError, setImageError] = useState();
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
+    useThumbnails ? setUrl(getUrl(day, true)) : setSync(false);
     setImageError(false);
-    setUrl(getUrl(day, true));
     clearTimeout(debounce.current);
     debounce.current = setTimeout(() => setUrl(getUrl(day)), 300);
   }, [cursor]);
 
-  const update = _cursor => {
-    setCursor(_cursor);
-    console.log('call update', day);
-  };
+  const handleOnLoad = useCallback(() => {
+    if (!imageLoaded) {
+      setImageLoaded(true);
+    }
+
+    if (!useThumbnails) {
+      setSync(true);
+    }
+  }, [imageLoaded, useThumbnails]);
 
   const dateLabel = day.format('dddd Do MMMM YYYY');
 
@@ -49,6 +57,9 @@ const NewYorkTimes = () => {
                 src={url}
                 alt={`New York Times front page on ${dateLabel}`}
                 onError={setImageError}
+                onLoad={handleOnLoad}
+                sync={sync}
+                show={imageLoaded}
               />
             </FrontPage>
           )}
@@ -89,14 +100,14 @@ const NewYorkTimes = () => {
           </SliderContainer>
           <IconButton
             onClick={() => {
-              update(cursor - 1);
+              setCursor(cursor - 1);
             }}
             disabled={cursor === 0}
           >
             <NavigateBefore color="primary" />
           </IconButton>
           <IconButton
-            onClick={() => update(cursor + 1)}
+            onClick={() => setCursor(cursor + 1)}
             disabled={cursor + 1 > days}
           >
             <NavigateNext color="primary" />
@@ -144,6 +155,7 @@ const Container = styled.div`
 
 const Main = styled(Paper)`
   text-align: center;
+  transition: background-color 300ms;
 `;
 
 const FrontPage = styled(Paper)`
@@ -154,12 +166,15 @@ const FrontPage = styled(Paper)`
 
 const FrontPageImage = styled.img`
   height: 100%;
+  opacity: ${({ sync }) => (sync ? 1 : 0.2)};
+  visibility: ${({ show }) => (show ? 'visible' : 'hidden')};
+  transition: opacity 500ms;
 `;
 
 const FrontPageFallback = styled.div`
   height: 100%;
   margin: 0 auto;
-  background-color: #fefffe;
+  background-color: #fefffe6b;
   color: #111;
   width: 65vh;
   padding: 30px;
@@ -170,6 +185,7 @@ const Controls = styled.div`
   align-items: center;
   font-size: 14px;
   background-color: ${({ theme }) => theme.palette.secondary.main};
+  transition: background-color 300ms;
 `;
 
 const Label = styled.div`
@@ -198,4 +214,8 @@ const DateLabel = styled.div`
     white-space: nowrap;
     padding: 10px 20px;
   }
+`;
+
+const IconButton = styled(_IconButton)`
+  opacity: ${({ disabled }) => (disabled ? 0.3 : 1)};
 `;
