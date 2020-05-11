@@ -17,7 +17,7 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 
 const useThumbnails = process.env.USE_THUMBNAILS === 'true';
 const start = moment('1851-09-18').startOf('day');
-const end = moment('2020-05-11').startOf('day');
+const end = moment().startOf('day');
 const firstSundayPublication = moment('1861-04-21');
 const days = end.diff(start, 'days');
 
@@ -175,8 +175,11 @@ function getUrl(day, thumbnail) {
 function getImageFallbackText(day) {
   let str = '';
   if (day.weekday() === 0 && day < firstSundayPublication) {
-    str +=
-      'The New York Times did not publish on Sundays before 21st April 1861. ';
+    return 'The New York Times did not publish on Sundays before 21st April 1861.';
+  }
+
+  if (day.startOf('day').isSame(end)) {
+    return 'This edition is not yet available, please check back later.';
   }
   str +=
     'The New York Times may not have published on this day due to a strike or public holiday. ';
