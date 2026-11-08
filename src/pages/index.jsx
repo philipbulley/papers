@@ -33,7 +33,11 @@ const days = differenceInCalendarDays(end, start);
 const maxLandingStepsBack = 2;
 
 const NewYorkTimes = () => {
-  const [cursor, setCursor] = useState(days);
+  // A date in the URL (e.g. /1851/09/18) opens on that day, otherwise
+  // open on the latest front page
+  const [cursor, setCursor] = useState(
+    () => getCursorFromPath(window.location.pathname) ?? days,
+  );
   const day = addDays(start, cursor);
   const debounce = useRef(null);
   const [url, setUrl] = useState();
@@ -41,21 +45,58 @@ const NewYorkTimes = () => {
   const [imageError, setImageError] = useState();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
-  // True until the first front page loads or the visitor navigates
-  const isLanding = useRef(true);
+  // True until the first front page loads or the visitor navigates. Only
+  // applies when opening the latest front page, not a date from the URL
+  const isLanding = useRef(cursor === days);
   const landingStepsBack = useRef(0);
+  // The day shown for "/", which may have stepped back from today
+  const landingCursor = useRef(days);
+  // Whether the next settled day should be added to browser history
+  const pushToHistory = useRef(false);
 
   const navigateTo = useCallback(newCursor => {
     isLanding.current = false;
+    pushToHistory.current = true;
     setCursor(newCursor);
   }, []);
 
   useEffect(() => {
+    // Drop an unrecognised or out of range date from the URL
+    if (
+      window.location.pathname !== '/' &&
+      getCursorFromPath(window.location.pathname) === null
+    ) {
+      window.history.replaceState(null, '', '/');
+    }
+
+    // Back and forward buttons
+    const handlePopState = () => {
+      isLanding.current = false;
+      pushToHistory.current = false;
+      setCursor(
+        getCursorFromPath(window.location.pathname) ?? landingCursor.current,
+      );
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
     useThumbnails ? setUrl(getUrl(day, true)) : setSync(false);
+    document.title = `New York Times, ${format(day, 'd MMMM yyyy')} | Papers Time Machine`;
     clearTimeout(debounce.current);
     debounce.current = setTimeout(() => {
       setImageError(false);
       setUrl(getUrl(day));
+
+      // Add to history once the visitor settles on a day, so dragging the
+      // slider doesn't add every day it passes
+      const path = getPath(day);
+      if (pushToHistory.current && path !== window.location.pathname) {
+        window.history.pushState(null, '', path);
+      }
+      pushToHistory.current = false;
     }, 300);
   }, [cursor]);
 
@@ -74,7 +115,8 @@ const NewYorkTimes = () => {
   const handleOnError = useCallback(() => {
     if (isLanding.current && landingStepsBack.current < maxLandingStepsBack) {
       landingStepsBack.current++;
-      setCursor(cursor => cursor - 1);
+      landingCursor.current--;
+      setCursor(landingCursor.current);
       return;
     }
 
@@ -200,6 +242,27 @@ function getNewYorkToday() {
   );
 
   return new Date(parts.year, parts.month - 1, parts.day);
+}
+
+function getPath(day) {
+  return `/${format(day, 'yyyy/MM/dd')}`;
+}
+
+function getCursorFromPath(pathname) {
+  const match = pathname.match(/^\/(\d{4})\/(\d{2})\/(\d{2})\/?$/);
+  if (!match) {
+    return null;
+  }
+
+  const [year, month, date] = match.slice(1).map(Number);
+  const day = new Date(year, month - 1, date);
+  // Reject dates that roll over, e.g. 1900/02/30
+  if (day.getMonth() !== month - 1 || day.getDate() !== date) {
+    return null;
+  }
+
+  const cursor = differenceInCalendarDays(day, start);
+  return cursor >= 0 && cursor <= days ? cursor : null;
 }
 
 function getUrl(day, thumbnail) {

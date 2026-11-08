@@ -1,3 +1,10 @@
 [build]
   command = "npm run build"
   publish = "dist"
+
+# Serve the app for date paths like /1851/09/18. Other unknown paths
+# still get 404.html
+[[redirects]]
+  from = "/:year/:month/:day"
+  to = "/index.html"
+  status = 200
