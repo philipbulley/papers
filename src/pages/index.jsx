@@ -1,7 +1,16 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import Layout from '../components/layout';
-import moment from 'moment';
+import {
+  addDays,
+  differenceInCalendarDays,
+  differenceInYears,
+  format,
+  isBefore,
+  isSameDay,
+  isSunday,
+  startOfToday,
+} from 'date-fns';
 import Slider from '@mui/material/Slider';
 import _IconButton from '@mui/material/IconButton';
 import NavigateBefore from '@mui/icons-material/NavigateBefore';
@@ -15,14 +24,14 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 
 const useThumbnails = import.meta.env.VITE_USE_THUMBNAILS === 'true';
-const start = moment('1851-09-18').startOf('day');
-const end = moment().startOf('day');
-const firstSundayPublication = moment('1861-04-21');
-const days = end.diff(start, 'days');
+const start = new Date(1851, 8, 18);
+const end = startOfToday();
+const firstSundayPublication = new Date(1861, 3, 21);
+const days = differenceInCalendarDays(end, start);
 
 const NewYorkTimes = () => {
   const [cursor, setCursor] = useState(days);
-  const day = moment(start).add(cursor, 'days');
+  const day = addDays(start, cursor);
   const debounce = useRef(null);
   const [url, setUrl] = useState();
   const [sync, setSync] = useState(true);
@@ -58,7 +67,7 @@ const NewYorkTimes = () => {
     setShowDialog(!showDialog);
   }, [showDialog]);
 
-  const dateLabel = day.format('dddd Do MMMM YYYY');
+  const dateLabel = format(day, 'EEEE do MMMM yyyy');
 
   return (
     <Layout>
@@ -159,28 +168,25 @@ const NewYorkTimes = () => {
 export default NewYorkTimes;
 
 function getUrl(day, thumbnail) {
-  const base = thumbnail
-    ? `/thumb/nyt/%y/%m/%d.jpg`
-    : `https://static01.nyt.com/images/%y/%m/%d/nytfrontpage/scan.jpg`;
+  const path = format(day, 'yyyy/MM/dd');
 
-  return base
-    .replace('%y', day.year())
-    .replace('%m', (day.month() + 1).toString().padStart(2, '0'))
-    .replace('%d', day.date().toString().padStart(2, '0'));
+  return thumbnail
+    ? `/thumb/nyt/${path}.jpg`
+    : `https://static01.nyt.com/images/${path}/nytfrontpage/scan.jpg`;
 }
 
 function getImageFallbackText(day) {
   let str = '';
-  if (day.weekday() === 0 && day < firstSundayPublication) {
+  if (isSunday(day) && isBefore(day, firstSundayPublication)) {
     return 'The New York Times did not publish on Sundays before 21st April 1861.';
   }
 
-  if (day.startOf('day').isSame(end)) {
+  if (isSameDay(day, end)) {
     return 'This edition is not yet available, please check back later.';
   }
   str +=
     'The New York Times may not have published on this day due to a strike or public holiday. ';
-  if (end.diff(day, 'years') < 10) {
+  if (differenceInYears(end, day) < 10) {
     str += `It's also possible that this edition is simply missing from the archive. `;
   }
   return str;

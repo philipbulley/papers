@@ -2,7 +2,15 @@ import axios from 'axios';
 import * as Path from 'path';
 import * as fs from 'fs';
 import { promises as fsp } from 'fs';
-import moment, { type Moment } from 'moment';
+import {
+  addDays,
+  differenceInCalendarDays,
+  format,
+  isBefore,
+  isSunday,
+  parseISO,
+  startOfToday,
+} from 'date-fns';
 import sharp from 'sharp';
 
 // download(
@@ -17,13 +25,12 @@ const failsFile = `${basePath}/fails.txt`;
 
 console.log('Base Path:', basePath);
 
-const start = moment('1851-09-18').startOf('day');
-const end = moment().startOf('day');
-const totalDays = end.diff(start, 'days');
-const firstSundayPublication = moment('1861-04-21');
-let sessionStart: Moment | undefined;
-// const days = end.diff(start, 'days') + 1;
-let day: Moment;
+const start = new Date(1851, 8, 18);
+const end = startOfToday();
+const totalDays = differenceInCalendarDays(end, start);
+const firstSundayPublication = new Date(1861, 3, 21);
+let sessionStart: Date | undefined;
+let day: Date;
 
 /** Download a single file and write to disk
  *
@@ -60,17 +67,17 @@ async function download(url: string, path: string, filename = 'dummy.jpg') {
   });
 }
 
-async function downloadDay(day: Moment) {
+async function downloadDay(day: Date) {
   const url = getUrl(day);
-  const filename = day.format('DD') + '.jpg';
+  const filename = format(day, 'dd') + '.jpg';
 
-  return download(url, `/full/${day.format('YYYY/MM')}`, filename);
+  return download(url, `/full/${format(day, 'yyyy/MM')}`, filename);
 }
 
-async function resizeDay(day: Moment, size: number) {
-  const filename = day.format('DD') + '.jpg';
-  const fromPath = `/full/${day.format('YYYY/MM')}`;
-  const toPath = `/thumb/${size}/${day.format('YYYY/MM')}`;
+async function resizeDay(day: Date, size: number) {
+  const filename = format(day, 'dd') + '.jpg';
+  const fromPath = `/full/${format(day, 'yyyy/MM')}`;
+  const toPath = `/thumb/${size}/${format(day, 'yyyy/MM')}`;
 
   // console.log('Resize', `${basePath}${fromPath}/${filename}`);
 
@@ -85,26 +92,26 @@ async function downloadNext() {
   if (!sessionStart) {
     const latestSuccess = await fsp.readFile(latestFile, { encoding: 'ascii' });
     if (latestSuccess) {
-      sessionStart = moment(latestSuccess).add(1, 'days');
-      console.log('Resuming at', sessionStart.format('YYYY-MM-DD'));
+      sessionStart = addDays(parseISO(latestSuccess), 1);
+      console.log('Resuming at', format(sessionStart, 'yyyy-MM-dd'));
     } else {
-      sessionStart = start.clone();
+      sessionStart = start;
       console.log(
         'Starting from the beginning at',
-        sessionStart.format('YYYY-MM-DD'),
+        format(sessionStart, 'yyyy-MM-dd'),
       );
     }
-    day = sessionStart.clone();
+    day = sessionStart;
   } else {
-    day.add(1, 'days');
+    day = addDays(day, 1);
   }
 
-  if (day.weekday() === 0 && day < firstSundayPublication) {
-    console.log(`🏃🏽‍♀️ Skipped ${day.format('YYYY-MM-DD dddd')}`);
-    day.add(1, 'days');
+  if (isSunday(day) && isBefore(day, firstSundayPublication)) {
+    console.log(`🏃🏽‍♀️ Skipped ${format(day, 'yyyy-MM-dd EEEE')}`);
+    day = addDays(day, 1);
   }
 
-  const dayFormatted = day.format('YYYY-MM-DD');
+  const dayFormatted = format(day, 'yyyy-MM-dd');
   try {
     await downloadDay(day);
     await resizeDay(day, 100);
@@ -114,13 +121,11 @@ async function downloadNext() {
     await resizeDay(day, 25);
 
     fsp.writeFile(latestFile, dayFormatted);
-    const complete = day.diff(start, 'days');
-    const todo = end.diff(day, 'days');
+    const complete = differenceInCalendarDays(day, start);
+    const todo = differenceInCalendarDays(end, day);
 
     console.log(
-      `✅ ${dayFormatted}\t${day.format(
-        'ddd',
-      )}\t${complete}\t${todo}\t${totalDays}\t${
+      `✅ ${dayFormatted}\t${format(day, 'EEE')}\t${complete}\t${todo}\t${totalDays}\t${
         Math.ceil((complete / totalDays) * 100 * 100) / 100
       }%`,
     );
@@ -132,13 +137,8 @@ async function downloadNext() {
   }
 }
 
-function getUrl(day: Moment) {
-  return `https://static01.nyt.com/images/${day.year()}/${(day.month() + 1)
-    .toString()
-    .padStart(2, '0')}/${day
-    .date()
-    .toString()
-    .padStart(2, '0')}/nytfrontpage/scan.jpg`;
+function getUrl(day: Date) {
+  return `https://static01.nyt.com/images/${format(day, 'yyyy/MM/dd')}/nytfrontpage/scan.jpg`;
 }
 
 ////////////
