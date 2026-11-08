@@ -21,7 +21,7 @@ const firstSundayPublication = moment('1861-04-21');
 const days = end.diff(start, 'days');
 
 const NewYorkTimes = () => {
-  const [cursor, setCursor] = useState(0);
+  const [cursor, setCursor] = useState(days);
   const day = moment(start).add(cursor, 'days');
   const debounce = useRef(null);
   const [url, setUrl] = useState();
