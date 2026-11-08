@@ -9,7 +9,6 @@ import {
   isBefore,
   isSameDay,
   isSunday,
-  startOfToday,
 } from 'date-fns';
 import Slider from '@mui/material/Slider';
 import _IconButton from '@mui/material/IconButton';
@@ -25,9 +24,13 @@ import DialogContentText from '@mui/material/DialogContentText';
 
 const useThumbnails = import.meta.env.VITE_USE_THUMBNAILS === 'true';
 const start = new Date(1851, 8, 18);
-const end = startOfToday();
+// Editions are dated by New York's calendar, which may lag the visitor's
+const end = getNewYorkToday();
 const firstSundayPublication = new Date(1861, 3, 21);
 const days = differenceInCalendarDays(end, start);
+// If the latest front page isn't published yet when the site opens, step
+// back at most this many days to find one
+const maxLandingStepsBack = 2;
 
 const NewYorkTimes = () => {
   const [cursor, setCursor] = useState(days);
@@ -38,6 +41,14 @@ const NewYorkTimes = () => {
   const [imageError, setImageError] = useState();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
+  // True until the first front page loads or the visitor navigates
+  const isLanding = useRef(true);
+  const landingStepsBack = useRef(0);
+
+  const navigateTo = useCallback(newCursor => {
+    isLanding.current = false;
+    setCursor(newCursor);
+  }, []);
 
   useEffect(() => {
     useThumbnails ? setUrl(getUrl(day, true)) : setSync(false);
@@ -49,6 +60,8 @@ const NewYorkTimes = () => {
   }, [cursor]);
 
   const handleOnLoad = useCallback(() => {
+    isLanding.current = false;
+
     if (!imageLoaded) {
       setImageLoaded(true);
     }
@@ -59,6 +72,13 @@ const NewYorkTimes = () => {
   }, [imageLoaded, useThumbnails]);
 
   const handleOnError = useCallback(() => {
+    if (isLanding.current && landingStepsBack.current < maxLandingStepsBack) {
+      landingStepsBack.current++;
+      setCursor(cursor => cursor - 1);
+      return;
+    }
+
+    isLanding.current = false;
     setImageError(true);
     setSync(true);
   }, []);
@@ -119,21 +139,21 @@ const NewYorkTimes = () => {
             <Slider
               name="time"
               value={cursor}
-              onChange={(e, newValue) => setCursor(newValue)}
+              onChange={(e, newValue) => navigateTo(newValue)}
               min={0}
               max={days}
             />
           </SliderContainer>
           <IconButton
             onClick={() => {
-              setCursor(cursor - 1);
+              navigateTo(cursor - 1);
             }}
             disabled={cursor === 0}
           >
             <NavigateBefore color="primary" />
           </IconButton>
           <IconButton
-            onClick={() => setCursor(cursor + 1)}
+            onClick={() => navigateTo(cursor + 1)}
             disabled={cursor + 1 > days}
           >
             <NavigateNext color="primary" />
@@ -166,6 +186,21 @@ const NewYorkTimes = () => {
 };
 
 export default NewYorkTimes;
+
+function getNewYorkToday() {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+    })
+      .formatToParts(new Date())
+      .map(({ type, value }) => [type, Number(value)]),
+  );
+
+  return new Date(parts.year, parts.month - 1, parts.day);
+}
 
 function getUrl(day, thumbnail) {
   const path = format(day, 'yyyy/MM/dd');
