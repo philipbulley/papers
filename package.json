@@ -2,43 +2,36 @@
   "name": "papers-time-machine",
   "private": true,
   "version": "1.0.0",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "format": "prettier --write \"**/*.{js,jsx,json,md,html}\"",
+    "typecheck": "tsc --project ./scripts/tsconfig.json",
+    "dl": "node ./scripts/downloader.mts",
+    "cp": "mkdir -p ./public/thumb/nyt && cp -r ./download/nyt/thumb/37/ ./public/thumb/nyt",
+    "test": "echo \"No tests yet\" && exit 1"
+  },
   "dependencies": {
-    "@material-ui/core": "^4.12.4",
-    "@material-ui/icons": "^4.11.3",
-    "babel-plugin-styled-components": "^1.13.3",
-    "gatsby": "^2.32.13",
-    "gatsby-plugin-manifest": "^2.12.1",
-    "gatsby-plugin-material-ui": "^2.1.10",
-    "gatsby-plugin-react-helmet": "^3.10.0",
-    "gatsby-plugin-styled-components": "^3.10.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.5.0",
+    "@mui/material": "^9.5.0",
     "moment": "^2.31.0",
-    "prop-types": "^15.8.1",
-    "react": "^16.14.0",
-    "react-dom": "^16.14.0",
-    "react-helmet": "^6.1.0",
-    "styled-components": "^5.3.11"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "styled-components": "^6.6.0"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
+    "@vitejs/plugin-react": "^6.2.1",
     "axios": "^1.21.0",
     "prettier": "^3.9.10",
     "sharp": "^0.35.5",
-    "typescript": "^7.0.2"
-  },
-  "license": "MIT",
-  "scripts": {
-    "build": "NODE_OPTIONS=--openssl-legacy-provider gatsby build",
-    "develop": "NODE_OPTIONS=--openssl-legacy-provider gatsby develop",
-    "format": "prettier --write \"**/*.{js,jsx,json,md}\"",
-    "start": "npm run develop",
-    "serve": "NODE_OPTIONS=--openssl-legacy-provider gatsby serve",
-    "clean": "gatsby clean",
-    "test": "echo \"No tests yet\" && exit 1",
-    "dl": "node ./scripts/downloader.mts",
-    "cp": "mkdir -p ./static/thumb/nyt && cp -r ./download/nyt/thumb/37/ ./static/thumb/nyt",
-    "typecheck": "tsc --project ./scripts/tsconfig.json"
-  },
-  "overrides": {
-    "sharp": "$sharp"
+    "typescript": "^7.0.2",
+    "vite": "^8.3.6"
   }
 }

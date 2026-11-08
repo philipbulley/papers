@@ -10,5 +10,9 @@ Requires the Node version in `.nvmrc` (run `nvm use`). Uses npm.
 
 ```sh
 npm install
-npm start
+npm start          # dev server at http://localhost:5173
+npm run build      # production build into dist/
+npm run preview    # serve the production build
 ```
+
+Built with [Vite](https://vite.dev), React and [Material UI](https://mui.com).

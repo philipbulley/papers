@@ -54,9 +54,8 @@ typings/
 # dotenv environment variable files
 .env*
 
-# gatsby files
-.cache/
-_public
+# Build output
+dist
 
 # Mac files
 .DS_Store
@@ -71,5 +70,4 @@ yarn-error.log
 download
 .idea
 scripts/downloader.md
-public
-static/thumb
+public/thumb

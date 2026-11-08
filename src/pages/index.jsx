@@ -1,21 +1,20 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import Layout from '../components/layout';
-import SEO from '../components/seo';
 import moment from 'moment';
-import Slider from '@material-ui/core/Slider';
-import _IconButton from '@material-ui/core/IconButton';
-import NavigateBefore from '@material-ui/icons/NavigateBefore';
-import NavigateNext from '@material-ui/icons/NavigateNext';
-import HelpIcon from '@material-ui/icons/Help';
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
-import Dialog from '@material-ui/core/Dialog';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
+import Slider from '@mui/material/Slider';
+import _IconButton from '@mui/material/IconButton';
+import NavigateBefore from '@mui/icons-material/NavigateBefore';
+import NavigateNext from '@mui/icons-material/NavigateNext';
+import HelpIcon from '@mui/icons-material/Help';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
 
-const useThumbnails = process.env.USE_THUMBNAILS === 'true';
+const useThumbnails = import.meta.env.VITE_USE_THUMBNAILS === 'true';
 const start = moment('1851-09-18').startOf('day');
 const end = moment().startOf('day');
 const firstSundayPublication = moment('1861-04-21');
@@ -65,7 +64,6 @@ const NewYorkTimes = () => {
     <Layout>
       <Container>
         <Main>
-          <SEO title="New York Times — Front Pages" />
           {!imageError && (
             <FrontPage>
               <FrontPageImage
@@ -73,8 +71,8 @@ const NewYorkTimes = () => {
                 alt={`New York Times front page on ${dateLabel}`}
                 onError={handleOnError}
                 onLoad={handleOnLoad}
-                sync={sync}
-                show={imageLoaded}
+                $sync={sync}
+                $show={imageLoaded}
               />
             </FrontPage>
           )}
@@ -86,8 +84,7 @@ const NewYorkTimes = () => {
                 </Typography>
                 <Typography
                   align="center"
-                  paragraph
-                  css={{ marginTop: '100px' }}
+                  sx={{ marginTop: '100px', marginBottom: 2 }}
                 >
                   {getImageFallbackText(day)}
                 </Typography>
@@ -214,8 +211,8 @@ const FrontPage = styled(Paper)`
 
 const FrontPageImage = styled.img`
   height: 100%;
-  opacity: ${({ sync }) => (sync ? 1 : 0.2)};
-  visibility: ${({ show }) => (show ? 'visible' : 'hidden')};
+  opacity: ${({ $sync }) => ($sync ? 1 : 0.2)};
+  visibility: ${({ $show }) => ($show ? 'visible' : 'hidden')};
   transition: opacity 500ms;
 `;
 
