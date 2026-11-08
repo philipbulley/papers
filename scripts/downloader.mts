@@ -91,7 +91,7 @@ async function downloadNext() {
       sessionStart = start.clone();
       console.log(
         'Starting from the beginning at',
-        sessionStart.format('YYYY-MM-DD')
+        sessionStart.format('YYYY-MM-DD'),
       );
     }
     day = sessionStart.clone();
@@ -119,10 +119,10 @@ async function downloadNext() {
 
     console.log(
       `✅ ${dayFormatted}\t${day.format(
-        'ddd'
+        'ddd',
       )}\t${complete}\t${todo}\t${totalDays}\t${
         Math.ceil((complete / totalDays) * 100 * 100) / 100
-      }%`
+      }%`,
     );
   } catch (e) {
     await fsp.appendFile(failsFile, `${dayFormatted}\n`);

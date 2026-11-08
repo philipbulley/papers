@@ -9,7 +9,7 @@
     "start": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "format": "prettier --write \"**/*.{js,jsx,json,md,html}\"",
+    "format": "prettier --write .",
     "typecheck": "tsc --project ./scripts/tsconfig.json",
     "dl": "node ./scripts/downloader.mts",
     "cp": "mkdir -p ./public/thumb/nyt && cp -r ./download/nyt/thumb/37/ ./public/thumb/nyt",
