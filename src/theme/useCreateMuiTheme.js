@@ -1,5 +1,5 @@
 import { useContext, useMemo } from 'react';
-import { createMuiTheme, responsiveFontSizes } from '@material-ui/core/styles';
+import { createTheme, responsiveFontSizes } from '@material-ui/core/styles';
 import { ColorSchemeContext } from '../../plugins/gatsby-plugin-top-layout/TopLayout';
 
 const useCreateMuiTheme = () => {
@@ -8,7 +8,7 @@ const useCreateMuiTheme = () => {
   const theme = useMemo(
     () =>
       responsiveFontSizes(
-        createMuiTheme({
+        createTheme({
           palette: dark
             ? {
                 primary: { main: '#f4f5f4', contrastText: '#fff' },

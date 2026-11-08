@@ -40,11 +40,11 @@ const Layout = ({ children }) => {
       <DarkModeToggleContainer>
         <DarkModeIcon>
           {dark ? (
-            <span role="image" aria-label="Dark Mode">
+            <span role="img" aria-label="Dark Mode">
               🌚
             </span>
           ) : (
-            <span role="image" aria-label="Light Mode">
+            <span role="img" aria-label="Light Mode">
               🌝
             </span>
           )}

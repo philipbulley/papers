@@ -2,8 +2,7 @@ import axios from 'axios';
 import * as Path from 'path';
 import * as fs from 'fs';
 import { promises as fsp } from 'fs';
-import moment from 'moment';
-import mkdirp from 'mkdirp';
+import moment, { type Moment } from 'moment';
 import sharp from 'sharp';
 
 // download(
@@ -12,7 +11,7 @@ import sharp from 'sharp';
 // );
 
 ///////////
-const basePath = Path.resolve(__dirname, '..', 'download', 'nyt');
+const basePath = Path.resolve(import.meta.dirname, '..', 'download', 'nyt');
 const latestFile = `${basePath}/latest.txt`;
 const failsFile = `${basePath}/fails.txt`;
 
@@ -22,19 +21,18 @@ const start = moment('1851-09-18').startOf('day');
 const end = moment().startOf('day');
 const totalDays = end.diff(start, 'days');
 const firstSundayPublication = moment('1861-04-21');
-let sessionStart;
+let sessionStart: Moment | undefined;
 // const days = end.diff(start, 'days') + 1;
-let day;
+let day: Moment;
 
 /** Download a single file and write to disk
  *
  * @param url
  * @param filename
  */
-async function download(url, path, filename = 'dummy.jpg') {
+async function download(url: string, path: string, filename = 'dummy.jpg') {
   const fullPath = basePath + path;
-  // @ts-ignore
-  await mkdirp(fullPath);
+  await fsp.mkdir(fullPath, { recursive: true });
   const file = `${fullPath}/${filename}`;
   const writer = fs.createWriteStream(file);
 
@@ -50,7 +48,7 @@ async function download(url, path, filename = 'dummy.jpg') {
     response.data.pipe(writer);
   } catch (e) {
     fsp.unlink(file);
-    throw new Error(e.message);
+    throw new Error((e as Error).message);
   }
 
   return new Promise((resolve, reject) => {
@@ -62,22 +60,21 @@ async function download(url, path, filename = 'dummy.jpg') {
   });
 }
 
-async function downloadDay(day) {
+async function downloadDay(day: Moment) {
   const url = getUrl(day);
   const filename = day.format('DD') + '.jpg';
 
   return download(url, `/full/${day.format('YYYY/MM')}`, filename);
 }
 
-async function resizeDay(day, size) {
+async function resizeDay(day: Moment, size: number) {
   const filename = day.format('DD') + '.jpg';
   const fromPath = `/full/${day.format('YYYY/MM')}`;
   const toPath = `/thumb/${size}/${day.format('YYYY/MM')}`;
 
   // console.log('Resize', `${basePath}${fromPath}/${filename}`);
 
-  // @ts-ignore
-  await mkdirp(`${basePath}${toPath}`);
+  await fsp.mkdir(`${basePath}${toPath}`, { recursive: true });
 
   return sharp(`${basePath}${fromPath}/${filename}`)
     .resize(size)
@@ -135,7 +132,7 @@ async function downloadNext() {
   }
 }
 
-function getUrl(day) {
+function getUrl(day: Moment) {
   return `https://static01.nyt.com/images/${day.year()}/${(day.month() + 1)
     .toString()
     .padStart(2, '0')}/${day
