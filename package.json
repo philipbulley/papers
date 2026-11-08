@@ -28,7 +28,7 @@
     "axios": "^0.19.2",
     "mkdirp": "^1.0.4",
     "prettier": "^2.0.5",
-    "sharp": "^0.25.2",
+    "sharp": "^0.35.5",
     "ts-node": "^8.10.1",
     "typescript": "^3.8.3"
   },
@@ -37,11 +37,11 @@
   ],
   "license": "MIT",
   "scripts": {
-    "build": "gatsby build",
-    "develop": "gatsby develop",
+    "build": "NODE_OPTIONS=--openssl-legacy-provider gatsby build",
+    "develop": "NODE_OPTIONS=--openssl-legacy-provider gatsby develop",
     "format": "prettier --write \"**/*.{js,jsx,json,md}\"",
     "start": "npm run develop",
-    "serve": "gatsby serve",
+    "serve": "NODE_OPTIONS=--openssl-legacy-provider gatsby serve",
     "clean": "gatsby clean",
     "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1",
     "dl": "ts-node --project ./scripts/tsconfig.json ./scripts/downloader.ts",
@@ -53,5 +53,8 @@
   },
   "bugs": {
     "url": "https://github.com/gatsbyjs/gatsby/issues"
+  },
+  "overrides": {
+    "sharp": "$sharp"
   }
 }

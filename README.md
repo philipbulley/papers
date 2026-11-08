@@ -4,6 +4,11 @@
 
 A small yet neat little time machine of newspaper front pages.
 
-### `yarn start`
+## Development
 
-To run the gatsby based site
+Requires the Node version in `.nvmrc` (run `nvm use`). Uses npm.
+
+```sh
+npm install
+npm start
+```
